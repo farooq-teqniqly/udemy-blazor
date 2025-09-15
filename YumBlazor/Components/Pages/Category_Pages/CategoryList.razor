@@ -28,5 +28,19 @@ else
 }
 
 @code {
-  public bool Loading { get; set; } = false;
+    public bool Loading { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Loading = true;
+        await Task.Delay(3000);
+        LoadCategories();
+        Loading = false;
+    }
+
+    private void LoadCategories()
+    {
+
+    }
+
 }
