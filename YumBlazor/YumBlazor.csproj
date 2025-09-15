@@ -19,6 +19,7 @@
 		<Folder Include="ViewModels\" />
 		<Folder Include="wwwroot\images\" />
 		<Folder Include="wwwroot\js\" />
+		<Folder Include="wwwroot\lib\bootstrap\icons\" />
 	</ItemGroup>
 
 </Project>
