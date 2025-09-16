@@ -2,6 +2,7 @@
 @page "/categories/update/{id:int}"
 @inject ICategoryService _categoryService
 @inject NavigationManager _navigationManager
+@inject IJSRuntime _js
 
 @if (_loading)
 {
@@ -69,9 +70,14 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        switch (firstRender)
         {
+          case false:
             return;
+          case true when _category == null:
+            await _js.ToastrError("Category not found.");
+            _navigationManager.NavigateTo("categories");
+            return;;
         }
 
         await LoadCategory();
@@ -93,7 +99,8 @@ else
     {
         if (_category is null)
         {
-          return;
+            await _js.ToastrError("Category not found.");
+            return;
         }
 
         _loading = true;
@@ -101,10 +108,12 @@ else
         if (Id == 0)
         {
             await _categoryService.CreateCategoryAsync(_category);
+            await _js.ToastrSuccess("Category created.");
         }
         else
         {
             await _categoryService.UpdateCategoryAsync(_category);
+            await _js.ToastrSuccess("Category updated.");
         }
 
         _loading = false;
