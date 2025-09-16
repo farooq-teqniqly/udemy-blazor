@@ -1,9 +1,113 @@
 ﻿@page "/categories/create"
 @page "/categories/update/{id:int}"
+@inject ICategoryService _categoryService
+@inject NavigationManager _navigationManager
 
-<h3>CategoryUpsert</h3>
+@if (_loading)
+{
+  <div class="position-absolute w-75 h-75 d-flex flex-column align-items-center bg-white justify-content-center">
+    <img src="images/loading.gif" alt="Loading categories"/>
+  </div>
+}
+else
+{
+  <div class="card shadow border-0 mt-4">
+    <div class="card-header bg-black bg-gradient ml-0 py-3">
+      <div class="row">
+        <div class="col-12 text-center">
+          <h2 class="text-white py-2">@(Id == 0 ? "Add New" : "Update Existing") Category</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body p-4">
+    @if (_category != null)
+    {
+      <EditForm Model="_category" FormName="CategoryUpsertForm" OnValidSubmit="UpsertCategory">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+
+        <div class="border p-3 mt-4">
+          <div class="form-floating py-3 col-12">
+            <InputText @bind-Value="_category.Name" class="form-control" id="Name" placeholder="Category Name"></InputText>
+            <label for="Name">Name</label>
+            <ValidationMessage For="@(() => _category.Name)"></ValidationMessage>
+          </div>
+          <div class="row mt-3">
+            <div class="col-6 col-md-3">
+              <button type="submit" class="btn btn-primary form-control" disabled="@_loading">
+                <i class="bi bi-floppy2-fill"></i> Save
+              </button>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="categories" class="btn btn-secondary form-control" disabled="@_loading">
+                <i class="bi bi-arrow-bar-left"></i> Back to category list
+              </a>
+            </div>
+          </div>
+        </div>
+      </EditForm>
+    }
+    else
+    {
+      <div class="alert alert-danger">
+        Category not found.
+      </div>
+    }
+  </div>
+}
+
 
 @code {
+
+    private bool _loading { get; set; } = true;
+
+    [SupplyParameterFromForm]
+    private Category? _category { get; set; } = new();
+
     [Parameter] 
     public int Id { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await LoadCategory();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadCategory()
+    {
+        if (Id == 0)
+        {
+            return;
+        }
+
+        _category = await _categoryService.GetCategoryAsync(Id);
+    }
+
+    private async Task UpsertCategory()
+    {
+        if (_category is null)
+        {
+          return;
+        }
+
+        _loading = true;
+
+        if (Id == 0)
+        {
+            await _categoryService.CreateCategoryAsync(_category);
+        }
+        else
+        {
+            await _categoryService.UpdateCategoryAsync(_category);
+        }
+
+        _loading = false;
+        _navigationManager.NavigateTo("categories");
+    }
 }
